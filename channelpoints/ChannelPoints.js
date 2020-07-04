@@ -14,10 +14,10 @@ class ChannelPoints {
    * @param {string[]} path
    * @param {Object.<string, string>} query
    */
-  handle(req, res, path, query) {
+  async handle(req, res, path, query) {
     switch (path[0]) {
       case 'listrewards':
-        this.listRewards.handle(req, res, path.slice(1), query)
+        await this.listRewards.handle(req, res, path.slice(1), query)
         break
       case '':
         res.write(this.getDefaultResponse())
