@@ -83,6 +83,7 @@ class ListRewards {
    * @param {ServerResponse} res
    * @param {string[]} path
    * @param {Object.<string, string>} query
+   * @return {any}
    */
   async handle(req, res, path, query) {
     let data
@@ -91,9 +92,9 @@ class ListRewards {
     } else if (query.login) {
       data = await this.gqlGetByLogin(query.login)
     } else {
-      res.write("Url parameter id or login is required.")
+      data = "Url parameter id or login is required."
       res.statusCode = 400
-      return
+      return data
     }
     if (!data) {
       res.statusCode = 500
@@ -101,7 +102,7 @@ class ListRewards {
     }
 
     //TODO: do stuff with GQL response
-    res.write(JSON.stringify(data, null, 2))
+    return data
   }
 
   async gqlGetById(id) {
