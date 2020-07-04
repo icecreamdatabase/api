@@ -16,6 +16,7 @@ class Index {
     this.server.listen(PORT)
     this.channelPoints = new ChannelPoints()
     this.bucketGlobalRatelimit = new BasicBucket(RATELIMIT_GLOBAL)
+    console.log(`Running on port ${PORT}...`)
   }
 
   /**
