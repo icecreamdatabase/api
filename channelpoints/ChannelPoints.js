@@ -22,7 +22,7 @@ class ChannelPoints {
         data = await this.listRewards.handle(req, res, path.slice(1), query)
         break
       case '':
-        res.write(this.getDefaultResponse())
+        data = this.getDefaultResponse()
         break
       default:
         res.statusCode = 404
