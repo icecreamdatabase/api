@@ -2,7 +2,7 @@
 const util = require('util')
 const axios = require('axios')
 
-const queryListRewardsById = `
+const queryGetQueueById = `
 query userInfo($id: ID)                    
 {
   all:user(id:$id lookupType:ALL){
@@ -11,28 +11,31 @@ query userInfo($id: ID)
     id
   },
   channel(id:$id){
-    communityPointsSettings{
-      name,
-      image {
-        url,
-        url2x,
-        url4x
-      },
-      customRewards{
-        id,
-        cost,
-        isEnabled,
-        isPaused,
-        isUserInputRequired,
-        shouldRedemptionsSkipRequestQueue,
-        title,
-        prompt
+    communityPointsRedemptionQueue(options:{status: UNFULFILLED}) {
+      edges {
+        cursor,
+        node {
+          id,
+          input,
+          rewardID,
+          rewardTitle,
+          status,
+          timestamp,
+          user {
+            displayName,
+            login,
+            id
+          }
+        }
+      }
+      pageInfo {
+        hasNextPage
+        hasPreviousPage
       }
     }
   }
 }
 `
-
 const configDefault = {
   method: 'post',
   url: 'https://gql.twitch.tv/gql',
@@ -42,7 +45,7 @@ const configDefault = {
   }
 };
 
-class ListRewards {
+class GetQueue {
   constructor() {
   }
 
@@ -56,8 +59,8 @@ class ListRewards {
    */
   async handle(req, res, path, query) {
     let data
-    if (query.id) {
-      data = await this.gqlGetById(query.id)
+    if (query.id && query.Authorization) {
+      data = await this.gqlGetById(query.id, query.Authorization)
     } else {
       data = this.getDefaultResponse()
       res.statusCode = 400
@@ -72,12 +75,13 @@ class ListRewards {
     return data
   }
 
-  async gqlGetById(id) {
+  async gqlGetById(id, auth) {
     let config = {...configDefault}
     config.data = {
-      query: queryListRewardsById,
+      query: queryGetQueueById,
       variables: {id: id}
     }
+    config.headers["Authorization"] = auth
     try {
       let response = await axios(config)
       return response.data
@@ -89,10 +93,10 @@ class ListRewards {
 
   getDefaultResponse() {
     return {
-      "requireParameter": ["id"],
-      "optimalParameter": []
+      "requireParameter": ["id", "Authorization"],
+      "optimalParameter": ["cursor"]
     }
   }
 }
 
-module.exports = ListRewards
+module.exports = GetQueue

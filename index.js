@@ -72,11 +72,10 @@ class Index {
     res.end()
   }
 
-  /**
-   * @return {string}
-   */
   getDefaultResponse() {
-    return "xD"
+    return {
+      "availableEndpoints": ["channelpoints"]
+    }
   }
 
 }

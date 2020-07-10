@@ -2,32 +2,12 @@
 const util = require('util')
 const axios = require('axios')
 
-const queryListRewardsById = `
-query userInfo($id: ID)                    
+const queryGetQueueById = `
+mutation userInfo($id: ID!, $newStatus: CommunityPointsCustomRewardRedemptionStatus!, $redemptionIDs: [ID!]!)       
 {
-  all:user(id:$id lookupType:ALL){
-    displayName,
-    login,
-    id
-  },
-  channel(id:$id){
-    communityPointsSettings{
-      name,
-      image {
-        url,
-        url2x,
-        url4x
-      },
-      customRewards{
-        id,
-        cost,
-        isEnabled,
-        isPaused,
-        isUserInputRequired,
-        shouldRedemptionsSkipRequestQueue,
-        title,
-        prompt
-      }
+  updateCommunityPointsCustomRewardRedemptionStatusesByRedemptions(input:{channelID:$id, newStatus: $newStatus, oldStatus: UNFULFILLED, redemptionIDs: $redemptionIDs}) {
+    error {
+      code
     }
   }
 }
@@ -42,7 +22,7 @@ const configDefault = {
   }
 };
 
-class ListRewards {
+class GetQueue {
   constructor() {
   }
 
@@ -56,8 +36,9 @@ class ListRewards {
    */
   async handle(req, res, path, query) {
     let data
-    if (query.id) {
-      data = await this.gqlGetById(query.id)
+    if (query.id && query.redemptionIDs && query.Authorization) {
+      // noinspection JSUnresolvedVariable
+      data = await this.gqlGetById(query.id, query.redemptionIDs, query.Authorization, query.oldStatus, query.newStatus)
     } else {
       data = this.getDefaultResponse()
       res.statusCode = 400
@@ -72,12 +53,13 @@ class ListRewards {
     return data
   }
 
-  async gqlGetById(id) {
+  async gqlGetById(id, redemptionIDs, auth, oldStatus = "UNFULFILLED", newStatus = "FULFILLED") {
     let config = {...configDefault}
     config.data = {
-      query: queryListRewardsById,
-      variables: {id: id}
+      query: queryGetQueueById,
+      variables: {id, redemptionIDs: redemptionIDs.split(','), oldStatus, newStatus}
     }
+    config.headers["Authorization"] = auth
     try {
       let response = await axios(config)
       return response.data
@@ -89,10 +71,11 @@ class ListRewards {
 
   getDefaultResponse() {
     return {
-      "requireParameter": ["id"],
-      "optimalParameter": []
+      "requireParameter": ["id", "redemptionIDs", "Authorization"],
+      "optimalParameter": ["oldStatus", "newStatus"]
     }
   }
+
 }
 
-module.exports = ListRewards
+module.exports = GetQueue

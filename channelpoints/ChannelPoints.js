@@ -2,10 +2,14 @@
 const util = require('util')
 
 const ListRewards = require('./ListRewards')
+const GetQueue = require('./GetQueue')
+const UpdateRedemptionStatuses = require('./UpdateRedemptionStatuses')
 
 class ChannelPoints {
   constructor() {
     this.listRewards = new ListRewards()
+    this.getQueue = new GetQueue()
+    this.updateRedemptionStatuses = new UpdateRedemptionStatuses()
   }
 
   /**
@@ -21,6 +25,12 @@ class ChannelPoints {
       case 'listrewards':
         data = await this.listRewards.handle(req, res, path.slice(1), query)
         break
+      case 'getqueue':
+        data = await this.getQueue.handle(req, res, path.slice(1), query)
+        break
+      case 'updateredemptionstatuses':
+        data = await this.updateRedemptionStatuses.handle(req, res, path.slice(1), query)
+        break
       case '':
         data = this.getDefaultResponse()
         break
@@ -30,11 +40,10 @@ class ChannelPoints {
     return data
   }
 
-  /**
-   * @return {string}
-   */
   getDefaultResponse() {
-    return "channelpoints"
+    return {
+      "availableEndpoints": ["listrewards", "getqueue", "updateredemptionstatuses"]
+    }
   }
 
 }
