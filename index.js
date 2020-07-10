@@ -6,7 +6,7 @@ const url = require('url')
 const ChannelPoints = require('./channelpoints/ChannelPoints')
 const BasicBucket = require('./BasicBucket')
 
-const PORT = 4701
+const PORT = 4710
 const RATELIMIT_GLOBAL = 20
 const RATELIMIT_RETRY_AFTER = 2
 
