@@ -21,16 +21,30 @@ query userInfo($id: ID)
       customRewards{
         id,
         cost,
+        title,
+        prompt,
+        defaultImage {
+          url,
+          url2x,
+          url4x
+        },
+        backgroundColor,
         isEnabled,
         isPaused,
+        isSubOnly,
         isUserInputRequired,
         shouldRedemptionsSkipRequestQueue,
-        title,
-        prompt
+        maxPerStreamSetting {
+          isEnabled,
+          maxPerStream
+        },
+        templateID,
+        updatedForIndicatorAt
       }
     }
   }
 }
+
 `
 
 const configDefault = {
@@ -80,7 +94,7 @@ class ListRewards {
     }
     try {
       let response = await axios(config)
-      return response.data
+      return response.data.data
     } catch (e) {
       console.log(e);
       return undefined

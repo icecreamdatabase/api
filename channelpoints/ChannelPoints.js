@@ -33,6 +33,7 @@ class ChannelPoints {
         break
       case '':
         data = this.getDefaultResponse()
+        res.statusCode = 400
         break
       default:
         res.statusCode = 404

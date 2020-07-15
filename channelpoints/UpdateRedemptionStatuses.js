@@ -3,9 +3,9 @@ const util = require('util')
 const axios = require('axios')
 
 const queryGetQueueById = `
-mutation userInfo($id: ID!, $newStatus: CommunityPointsCustomRewardRedemptionStatus!, $redemptionIDs: [ID!]!)       
+mutation userInfo($id: ID!, $newStatus: CommunityPointsCustomRewardRedemptionStatus!, $oldStatus: CommunityPointsCustomRewardRedemptionStatus!, $redemptionIDs: [ID!]!)       
 {
-  updateCommunityPointsCustomRewardRedemptionStatusesByRedemptions(input:{channelID:$id, newStatus: $newStatus, oldStatus: UNFULFILLED, redemptionIDs: $redemptionIDs}) {
+  updateCommunityPointsCustomRewardRedemptionStatusesByRedemptions(input:{channelID:$id, newStatus: $newStatus, oldStatus: $oldStatus, redemptionIDs: $redemptionIDs}) {
     error {
       code
     }
@@ -62,7 +62,7 @@ class GetQueue {
     config.headers["Authorization"] = auth
     try {
       let response = await axios(config)
-      return response.data
+      return response.data.data
     } catch (e) {
       console.log(e);
       return undefined
@@ -72,7 +72,8 @@ class GetQueue {
   getDefaultResponse() {
     return {
       "requireParameter": ["id", "redemptionIDs", "Authorization"],
-      "optimalParameter": ["oldStatus", "newStatus"]
+      "optimalParameter": ["oldStatus", "newStatus"],
+      "comment": "Defaults: oldStatus = 'UNFULFILLED', newStatus = 'FULFILLED'"
     }
   }
 

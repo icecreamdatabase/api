@@ -3,7 +3,7 @@ const util = require('util')
 const axios = require('axios')
 
 const queryGetQueueById = `
-query userInfo($id: ID)                    
+query userInfo($id: ID, $cursor: Cursor)                    
 {
   all:user(id:$id lookupType:ALL){
     displayName,
@@ -11,7 +11,7 @@ query userInfo($id: ID)
     id
   },
   channel(id:$id){
-    communityPointsRedemptionQueue(options:{status: UNFULFILLED}) {
+    communityPointsRedemptionQueue(options:{status: UNFULFILLED} after: $cursor) {
       edges {
         cursor,
         node {
@@ -60,7 +60,7 @@ class GetQueue {
   async handle(req, res, path, query) {
     let data
     if (query.id && query.Authorization) {
-      data = await this.gqlGetById(query.id, query.Authorization)
+      data = await this.gqlGetById(query.id, query.Authorization, query.cursor)
     } else {
       data = this.getDefaultResponse()
       res.statusCode = 400
@@ -75,16 +75,16 @@ class GetQueue {
     return data
   }
 
-  async gqlGetById(id, auth) {
+  async gqlGetById(id, auth, cursor) {
     let config = {...configDefault}
     config.data = {
       query: queryGetQueueById,
-      variables: {id: id}
+      variables: {id, cursor}
     }
     config.headers["Authorization"] = auth
     try {
       let response = await axios(config)
-      return response.data
+      return response.data.data
     } catch (e) {
       console.log(e);
       return undefined
