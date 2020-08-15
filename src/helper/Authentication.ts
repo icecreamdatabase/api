@@ -3,8 +3,9 @@ import Axios, {AxiosResponse} from "axios"
 import util from "util"
 
 import {Logger} from "./Logger"
-import {IApiResponse} from "../Rest"
+import {IApiResponse} from "../Rest/Rest"
 import {IncomingMessage, ServerResponse} from "http"
+import {HttpException} from "./HttpException"
 
 export interface IAccessTokenData {
   client_id: string,
@@ -39,28 +40,24 @@ export class Authentication {
   private constructor () {
   }
 
-  public static async check (req: IncomingMessage, res: ServerResponse): Promise<ICheckReturn> {
-    let data: IApiResponse | undefined
-    let accessTokenData: IAccessTokenData | undefined
-    if (req.headers.authorization) {
-
-      const auth: IValidateReturn = await Authentication.checkMap(req.headers.authorization)
-      switch (auth.authResponse) {
-        case AuthResponses.validAuth:
-          data = {status: 200}
-          accessTokenData = auth.accessTokenData
-          break
-        case AuthResponses.invalidAccessToken:
-          data = {status: 401, message: "Invalid access_token."}
-          break
-        case AuthResponses.badClientId:
-          data = {status: 401, message: "Bad clientId. OAuth token is associated with a different application."}
-          break
-      }
-    } else {
-      data = {status: 401, message: "Authorization is required."}
+  public static async check (req: IncomingMessage, res: ServerResponse): Promise<IAccessTokenData> {
+    if (!req.headers.authorization) {
+      throw new HttpException(401, "Authorization is requried")
     }
-    return {data, accessTokenData}
+
+    const auth: IValidateReturn = await Authentication.checkMap(req.headers.authorization)
+    switch (auth.authResponse) {
+      case AuthResponses.validAuth:
+        if (auth.accessTokenData) {
+          return auth.accessTokenData
+        } else {
+          throw new HttpException(500, "Authorization was successful but no accessTokenData exists.")
+        }
+      case AuthResponses.invalidAccessToken:
+        throw new HttpException(401, "Invalid access_token")
+      case AuthResponses.badClientId:
+        throw new HttpException(401, "Bad clientId. OAuth token is associated with a different application.")
+    }
   }
 
 
@@ -86,7 +83,7 @@ export class Authentication {
       })
       if (result.data.client_id === this.clientId) {
 
-        Logger.debug(`^^^ Valid token: ${util.inspect(result.data)}`)
+        //Logger.debug(`^^^ Valid token: ${util.inspect(result.data)}`)
         return {authResponse: AuthResponses.validAuth, accessTokenData: result.data, lastValidated: new Date()}
       } else {
         return {authResponse: AuthResponses.badClientId, lastValidated: new Date()}

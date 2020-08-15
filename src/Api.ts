@@ -1,10 +1,7 @@
 "use strict"
 
-import http, {IncomingMessage, Server, ServerResponse} from "http"
 import {Logger} from "./helper/Logger"
-import {Authentication, ICheckReturn} from "./helper/Authentication"
-import {Method} from "axios"
-import {Rest} from "./Rest"
+import {Rest} from "./Rest/Rest"
 
 
 
