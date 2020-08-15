@@ -1,6 +1,6 @@
 'use strict'
 import {Api} from "../../Api"
-import {ChannelPoints} from "../channelpoints/ChannelPoints"
+import {ChannelPoints} from "./channelpoints/ChannelPoints"
 import {Request, Response} from "express"
 import util from "util"
 

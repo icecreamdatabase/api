@@ -1,5 +1,5 @@
 'use strict'
-import {Api} from "../../Api"
+import {Api} from "../../../Api"
 import {Request, Response} from "express"
 
 const util = require('util')
