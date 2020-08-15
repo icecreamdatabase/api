@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 "use strict"
 
-import {IncomingMessage, ServerResponse} from "http"
+import {Request, Response} from "express"
 
 export class Logger {
   public static error (message: unknown): void {
@@ -32,7 +32,7 @@ export class Logger {
     return `[${new Date().toLocaleTimeString("de-DE", {hour12: false})}]`
   }
 
-  public static http (req: IncomingMessage, res: ServerResponse):void {
+  public static http (req: Request, res: Response):void {
     console.log(`${req.connection.remoteAddress} - - [${new Date().toISOString()}] ${req.method} ${req.url} HTTP/${req.httpVersion} ${res.statusCode} ${res.socket.bytesWritten}`)
   }
 }

@@ -1,15 +1,20 @@
 "use strict"
 
-import {Logger} from "./helper/Logger"
 import {Rest} from "./Rest/Rest"
 
 
-
 export class Api {
-  private readonly rest: Rest
+  private readonly _rest: Rest
 
   constructor () {
-    this.rest = new Rest()
+    this._rest = new Rest(this)
   }
 
+  public init () {
+    this.rest.init()
+  }
+
+  public get rest () {
+    return this._rest
+  }
 }
