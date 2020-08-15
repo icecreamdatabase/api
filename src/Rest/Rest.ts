@@ -69,7 +69,7 @@ export class Rest {
 
   private static async auth (req: Request, res: Response, next: NextFunction) {
     try {
-      await Authentication.check(req, res)
+      req.oAuthData = await Authentication.check(req, res)
       next()
     } catch (e) {
       next(e)

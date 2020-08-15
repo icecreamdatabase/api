@@ -7,23 +7,10 @@ import {IApiResponse} from "../Rest/Rest"
 import {IncomingMessage, ServerResponse} from "http"
 import {HttpException} from "./HttpException"
 
-export interface IAccessTokenData {
-  client_id: string,
-  login: string,
-  scopes: string[],
-  user_id: string,
-  expires_in: number
-}
-
 interface IValidateReturn {
   authResponse: AuthResponses,
   accessTokenData?: IAccessTokenData,
   lastValidated: Date
-}
-
-export interface ICheckReturn {
-  data: IApiResponse,
-  accessTokenData?: IAccessTokenData
 }
 
 enum AuthResponses {
@@ -33,11 +20,23 @@ enum AuthResponses {
 }
 
 export class Authentication {
-  private static readonly accessTokenCacheTimeMs = 30 * 60 * 1000 // 30 min
-  private static readonly clientId = "fy2ntph9sdyeb73p5mdf7o5h4hs5j8"
-  private static readonly authMap: Map<string, IValidateReturn> = new Map<string, IValidateReturn>()
+  private static readonly _accessTokenCacheTimeMs = 30 * 60 * 1000 // 30 min
+  private static readonly _mapClearInterval = 60 * 1000 // 1 min
+  private static readonly _clientId = "fy2ntph9sdyeb73p5mdf7o5h4hs5j8"
+  private static readonly _authMap: Map<string, IValidateReturn> = new Map<string, IValidateReturn>()
+  // noinspection JSUnusedLocalSymbols
+  private static readonly _clearAuthMapIntervalId: NodeJS.Timeout = setInterval(Authentication.clearMap, Authentication._mapClearInterval)
 
   private constructor () {
+  }
+
+  private static clearMap() {
+    const now = Date.now()
+    for (const entry of Authentication._authMap) {
+      if (entry[1].lastValidated.getTime() + Authentication._accessTokenCacheTimeMs < now) {
+        Authentication._authMap.delete(entry[0])
+      }
+    }
   }
 
   public static async check (req: IncomingMessage, res: ServerResponse): Promise<IAccessTokenData> {
@@ -56,7 +55,7 @@ export class Authentication {
       case AuthResponses.invalidAccessToken:
         throw new HttpException(401, "Invalid access_token")
       case AuthResponses.badClientId:
-        throw new HttpException(401, "Bad clientId. OAuth token is associated with a different application.")
+        throw new HttpException(401, "Bad _clientId. OAuth token is associated with a different application.")
     }
   }
 
@@ -64,10 +63,10 @@ export class Authentication {
   private static async checkMap (accessToken: string): Promise<IValidateReturn> {
     accessToken = accessToken.startsWith("OAuth ") ? accessToken : `OAuth ${accessToken}`
 
-    let authData = this.authMap.get(accessToken)
-    if (!authData || authData.lastValidated.getTime() + this.accessTokenCacheTimeMs < Date.now()) {
+    let authData = this._authMap.get(accessToken)
+    if (!authData) {
       authData = await this.validate(accessToken)
-      this.authMap.set(accessToken, authData)
+      this._authMap.set(accessToken, authData)
     }
     return authData
   }
@@ -81,7 +80,7 @@ export class Authentication {
           'Authorization': accessToken
         }
       })
-      if (result.data.client_id === this.clientId) {
+      if (result.data.client_id === this._clientId) {
 
         //Logger.debug(`^^^ Valid token: ${util.inspect(result.data)}`)
         return {authResponse: AuthResponses.validAuth, accessTokenData: result.data, lastValidated: new Date()}
@@ -110,7 +109,7 @@ export class Authentication {
         method: 'post',
         url: 'https://id.twitch.tv/oauth2/revoke',
         params: {
-          'client_id': this.clientId,
+          'client_id': this._clientId,
           'token': accessToken
         }
       })
