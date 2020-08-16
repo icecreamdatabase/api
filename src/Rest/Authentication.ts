@@ -2,10 +2,10 @@
 import Axios, {AxiosResponse} from "axios"
 import util from "util"
 
-import {Logger} from "./Logger"
-import {IApiResponse} from "../Rest/Rest"
-import {IncomingMessage, ServerResponse} from "http"
-import {HttpException} from "./HttpException"
+import {Logger} from "../helper/Logger"
+import {IApiResponse} from "./Rest"
+import {HttpException} from "../helper/HttpException"
+import {NextFunction, Request, Response} from "express"
 
 interface IValidateReturn {
   authResponse: AuthResponses,
@@ -30,7 +30,7 @@ export class Authentication {
   private constructor () {
   }
 
-  private static clearMap() {
+  private static clearMap () {
     const now = Date.now()
     for (const entry of Authentication._authMap) {
       if (entry[1].lastValidated.getTime() + Authentication._accessTokenCacheTimeMs < now) {
@@ -39,7 +39,16 @@ export class Authentication {
     }
   }
 
-  public static async check (req: IncomingMessage, res: ServerResponse): Promise<IAccessTokenData> {
+  public static async handle (req: Request, res: Response, next: NextFunction) {
+    try {
+      req.oAuthData = await Authentication.check(req, res)
+      next()
+    } catch (e) {
+      next(e)
+    }
+  }
+
+  private static async check (req: Request, res: Response): Promise<IAccessTokenData> {
     if (!req.headers.authorization) {
       throw new HttpException(401, "Authorization is requried")
     }
@@ -58,7 +67,6 @@ export class Authentication {
         throw new HttpException(401, "Bad _clientId. OAuth token is associated with a different application.")
     }
   }
-
 
   private static async checkMap (accessToken: string): Promise<IValidateReturn> {
     accessToken = accessToken.startsWith("OAuth ") ? accessToken : `OAuth ${accessToken}`

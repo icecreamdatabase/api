@@ -1,12 +1,13 @@
 "use strict"
 
 import util from "util"
-import {Authentication} from "../helper/Authentication"
+import {Authentication} from "./Authentication"
 import express, {Express, NextFunction, Request, Response} from "express"
 import {HttpException} from "../helper/HttpException"
 import {Logger} from "../helper/Logger"
 import {Api} from "../Api"
 import {V1} from "./v1/V1"
+import {RateLimit} from "./RateLimit"
 
 export interface IApiResponse {
   status: number,
@@ -30,7 +31,8 @@ export class Rest {
 
   public init () {
     this.app.use(Rest.onLog)
-    this.app.use(Rest.auth)
+    this.app.use(Authentication.handle)
+    this.app.use(RateLimit.handle)
     this.app.use(Rest.errorHandler) // Make sure this is the last use before gets
     this.app.get("/", this.base.bind(this))
 
@@ -65,15 +67,6 @@ export class Rest {
       res.status(500).json(<IApiResponse>{status: 500, message: err.message})
     }
     res.end()
-  }
-
-  private static async auth (req: Request, res: Response, next: NextFunction) {
-    try {
-      req.oAuthData = await Authentication.check(req, res)
-      next()
-    } catch (e) {
-      next(e)
-    }
   }
 
   private static async onLog (req: Request, res: Response, next: NextFunction) {
