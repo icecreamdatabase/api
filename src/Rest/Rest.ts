@@ -30,6 +30,7 @@ export class Rest {
   }
 
   public init () {
+    //TODO: Better logger. This one logs before having done anything FeelsDankMan
     this.app.use(Rest.onLog)
     this.app.use(Authentication.handle)
     this.app.use(RateLimit.handle)
