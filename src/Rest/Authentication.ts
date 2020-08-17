@@ -41,6 +41,7 @@ export class Authentication {
 
   public static async handle (req: Request, res: Response, next: NextFunction) {
     try {
+      //TODO: Use res.locals instead of extending the Request object? 🤔
       req.oAuthData = await Authentication.check(req, res)
       next()
     } catch (e) {

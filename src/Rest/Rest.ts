@@ -32,14 +32,15 @@ export class Rest {
   public init () {
     //TODO: Better logger. This one logs before having done anything FeelsDankMan
     this.app.use(Rest.onLog)
+    //this.app.use(express.json())
     this.app.use(Authentication.handle)
     this.app.use(RateLimit.handle)
-    this.app.use(Rest.errorHandler) // Make sure this is the last use before gets
     this.app.get("/", this.base.bind(this))
 
     //TODO: add all the api inits in here
     this._v1.init()
 
+    this.app.use(Rest.errorHandler) // Make sure this is the last use before gets
     this.app.use(Rest.on404) //Make sure this is last ever one
 
     this.app.listen(Rest.portREST)
