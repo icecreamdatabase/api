@@ -3,12 +3,14 @@ import {Api} from "../../Api"
 import {ChannelPoints} from "./channelpoints/ChannelPoints"
 import {Request, Response} from "express"
 import util from "util"
+import {Tts} from "./tts/Tts"
 
 export class V1 {
   private readonly _api: Api
   private readonly _pathBase: string
   private readonly _pathOwn = "v1"
   private readonly _channelPoints: ChannelPoints
+  private readonly _tts: Tts
 
   constructor (api: Api, pathBase: string) {
     this._api = api
@@ -16,12 +18,14 @@ export class V1 {
 
 
     this._channelPoints = new ChannelPoints(this.api, this.nextPaths)
+    this._tts = new Tts(this.api, this.nextPaths)
   }
 
   public init (): void {
     this.api.rest.app.get(this.nextPaths, this.base.bind(this))
 
     this.channelPoints.init()
+    this.tts.init()
   }
 
   private get api (): Api {
@@ -34,6 +38,10 @@ export class V1 {
 
   private get channelPoints (): ChannelPoints {
     return this._channelPoints
+  }
+
+  private get tts (): Tts {
+    return this._tts
   }
 
   private async base (req: Request, res: Response): Promise<void> {
