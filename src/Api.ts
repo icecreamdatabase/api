@@ -2,14 +2,24 @@
 
 import {Rest} from "./Rest/Rest"
 import {Aws} from "./aws/Aws"
-import {Logger} from "./helper/Logger"
+import EventEmitter from "eventemitter3"
 
+export enum Events {
+  "UpdateSettings",
+  "UpdateVoiceRewards",
+  "UpdateEditors",
+  "UpdateQueue",
+  "Pause",
+  "SkipNext",
+  "SkipId",
+}
 
-export class Api {
+export class Api extends EventEmitter {
   private readonly _rest: Rest
   private readonly _aws: Aws
 
   constructor () {
+    super()
     this._rest = new Rest(this)
     this._aws = new Aws()
   }

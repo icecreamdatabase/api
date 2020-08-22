@@ -8,6 +8,7 @@ interface IAccessTokenData {
 
 declare namespace Express {
   export interface Request {
-    oAuthData?: IAccessTokenData
+    oAuthData?: IAccessTokenData // Maybe remove the nullable? It's set int the first ever app.use
+    oAuthLevelV1Channel: number
   }
 }

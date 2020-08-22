@@ -17,7 +17,7 @@ export interface IApiResponse {
 
 export class Rest {
   private static readonly portREST = 4710
-  private readonly _pathBase = ""
+  private static readonly _pathBase = ""
   private readonly _app: Express
   private readonly _v1: V1
   private readonly _api: Api
@@ -52,7 +52,7 @@ export class Rest {
   }
 
   private get nextPaths (): string {
-    return this._pathBase
+    return Rest._pathBase
   }
 
   public get app (): Express {

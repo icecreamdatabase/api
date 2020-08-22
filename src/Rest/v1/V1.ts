@@ -10,7 +10,7 @@ import {HttpException} from "../../helper/HttpException"
 export class V1 {
   private readonly _api: Api
   private readonly _pathBase: string
-  private readonly _pathOwn = "v1"
+  private static readonly _pathOwn = "v1"
   private readonly _channelPoints: ChannelPoints
   private readonly _tts: Tts
   private readonly _channel: Channel
@@ -39,7 +39,7 @@ export class V1 {
   }
 
   private get nextPaths (): string {
-    return this._pathBase + "/" + this._pathOwn
+    return this._pathBase + "/" + V1._pathOwn
   }
 
   private async base (req: Request, res: Response, next: NextFunction): Promise<void> {
