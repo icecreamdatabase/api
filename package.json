@@ -14,13 +14,16 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "apollo-server-express": "^2.16.1",
     "aws-sdk": "^2.738.0",
     "axios": "^0.19.2",
-    "eventemitter3": "^4.0.4",
+    "class-validator": "^0.12.2",
+    "eventemitter3": "^4.0.5",
     "express": "^4.17.1",
-    "express-graphql": "^0.11.0",
     "graphql": "^15.3.0",
     "mysql2": "^2.1.0",
+    "reflect-metadata": "^0.1.13",
+    "type-graphql": "^1.0.0",
     "util": "^0.12.3",
     "ws": "^7.3.1"
   },

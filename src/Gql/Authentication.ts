@@ -4,19 +4,22 @@ import util from "util"
 
 import {Logger} from "../helper/Logger"
 import {IApiResponse} from "./Gql"
-import {HttpException} from "../helper/HttpException"
-import {NextFunction, Request, Response} from "express"
+import {Request, Response} from "express"
+import {ResolverData} from "type-graphql"
+import {UserLevels} from "../Enums"
 
 interface IValidateReturn {
-  authResponse: AuthResponses,
+  authResponse: boolean,
   accessTokenData?: IAccessTokenData,
   lastValidated: Date
 }
 
-enum AuthResponses {
-  "validAuth",
-  "badClientId",
-  "invalidAccessToken"
+interface IAccessTokenData {
+  client_id: string,
+  login: string,
+  scopes: string[],
+  user_id: string,
+  expires_in: number
 }
 
 export class Authentication {
@@ -30,6 +33,19 @@ export class Authentication {
   private constructor () {
   }
 
+  public static async authChecker({args, context, info, root}: ResolverData<any>, roles: UserLevels[]): Promise<boolean>  {
+    const oAuthData: IAccessTokenData | undefined = await Authentication.check(context.req, context.res)
+
+    if (!oAuthData) {
+      return false
+    }
+
+    const minUserLevel = <UserLevels>Math.max(...roles)
+    Logger.info(`Required auth: ${UserLevels[minUserLevel]}`)
+
+    return true
+  }
+
   private static clearMap () {
     const now = Date.now()
     for (const entry of Authentication._authMap) {
@@ -39,34 +55,16 @@ export class Authentication {
     }
   }
 
-  public static async handle (req: Request, res: Response, next: NextFunction) {
-    try {
-      //TODO: Use res.locals instead of extending the Request object? 🤔
-      req.oAuthData = await Authentication.check(req, res)
-      next()
-    } catch (e) {
-      next(e)
-    }
-  }
-
-  private static async check (req: Request, res: Response): Promise<IAccessTokenData> {
+  public static async check (req: Request, res: Response): Promise<IAccessTokenData | undefined> {
     if (!req.headers.authorization) {
-      throw new HttpException(401, "Authorization is requried")
+      return
     }
 
     const auth: IValidateReturn = await Authentication.checkMap(req.headers.authorization)
-    switch (auth.authResponse) {
-      case AuthResponses.validAuth:
-        if (auth.accessTokenData) {
-          return auth.accessTokenData
-        } else {
-          throw new HttpException(500, "Authorization was successful but no accessTokenData exists.")
-        }
-      case AuthResponses.invalidAccessToken:
-        throw new HttpException(401, "Invalid access_token")
-      case AuthResponses.badClientId:
-        throw new HttpException(401, "Bad _clientId. OAuth token is associated with a different application.")
+    if (auth.authResponse) {
+      return auth.accessTokenData
     }
+    return
   }
 
   private static async checkMap (accessToken: string): Promise<IValidateReturn> {
@@ -92,16 +90,16 @@ export class Authentication {
       if (result.data.client_id === this._clientId) {
 
         //Logger.debug(`^^^ Valid token: ${util.inspect(result.data)}`)
-        return {authResponse: AuthResponses.validAuth, accessTokenData: result.data, lastValidated: new Date()}
+        return {authResponse: true, accessTokenData: result.data, lastValidated: new Date()}
       } else {
-        return {authResponse: AuthResponses.badClientId, lastValidated: new Date()}
+        return {authResponse: false, lastValidated: new Date()}
       }
     } catch (e) {
       if (Object.prototype.hasOwnProperty.call(e, "response") && e.response) {
         const result = <IApiResponse>e.response
         //if unauthorized (expired or wrong token) also this.refresh()
         if (result.status === 401) {
-          Logger.debug(`^^^ Invalid token: ${util.inspect(result)}`)
+          Logger.debug(`^^^ Invalid token: ${util.inspect(result)}`) //TODO: don't log entire result object. It might contain OAuth data!
         } else {
           Logger.debug(`^^^ Error token: ${util.inspect(result)}`)
         }
@@ -109,7 +107,7 @@ export class Authentication {
         Logger.error(`^^^ Error general: ${util.inspect(e)}`)
       }
     }
-    return {authResponse: AuthResponses.invalidAccessToken, lastValidated: new Date()}
+    return {authResponse: false, lastValidated: new Date()}
   }
 
   private static async revoke (accessToken: string): Promise<void> {

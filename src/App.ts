@@ -2,4 +2,4 @@
 
 import {Api} from "./Api"
 
-new Api()
+new Api().init().then()

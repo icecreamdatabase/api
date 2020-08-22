@@ -23,4 +23,8 @@ export class Api extends EventEmitter {
     this._gql = new Gql(this)
     this._aws = new Aws()
   }
+
+  async init () {
+    await this._gql.init()
+  }
 }
