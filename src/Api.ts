@@ -23,16 +23,4 @@ export class Api extends EventEmitter {
     this._gql = new Gql(this)
     this._aws = new Aws()
   }
-
-  public init () {
-    this.gql.init()
-  }
-
-  public get gql () {
-    return this._gql
-  }
-
-  public get aws () {
-    return this._aws
-  }
 }
