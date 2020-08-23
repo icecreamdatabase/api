@@ -3,9 +3,9 @@ import Axios, {AxiosResponse} from "axios"
 import util from "util"
 
 import {Logger} from "../helper/Logger"
-import {IApiResponse} from "./Gql"
+import {IApiResponse, IContext} from "./Gql"
 import {Request, Response} from "express"
-import {ResolverData} from "type-graphql"
+import {AuthChecker, ResolverData} from "type-graphql"
 import {UserLevels} from "../Enums"
 
 interface IValidateReturn {
@@ -14,7 +14,7 @@ interface IValidateReturn {
   lastValidated: Date
 }
 
-interface IAccessTokenData {
+export interface IAccessTokenData {
   client_id: string,
   login: string,
   scopes: string[],
@@ -33,10 +33,8 @@ export class Authentication {
   private constructor () {
   }
 
-  public static async authChecker({args, context, info, root}: ResolverData<any>, roles: UserLevels[]): Promise<boolean>  {
-    const oAuthData: IAccessTokenData | undefined = await Authentication.check(context.req, context.res)
-
-    if (!oAuthData) {
+  public static async authChecker({args, context, info, root}: ResolverData<IContext>, roles: UserLevels[]): Promise<boolean>  {
+    if (!context.oAuthData) {
       return false
     }
 

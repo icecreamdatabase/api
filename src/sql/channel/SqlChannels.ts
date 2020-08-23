@@ -27,7 +27,7 @@ export class SqlChannels {
                ircMuted,
                isQueueMessages,
                volume,
-               canModsChangeSettings
+               allModsAreEditors
         FROM channels
         WHERE enabled = b'1'
           AND roomId = ?;`, [roomId])

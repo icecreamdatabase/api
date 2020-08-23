@@ -6,15 +6,20 @@ import {Api} from "../Api"
 import "reflect-metadata"
 import {buildSchema} from "type-graphql"
 import {ApolloServer} from "apollo-server-express"
-import {Authentication} from "./Authentication"
-
-import {ChannelResolver} from "./resolvers/Channel/ChannelResolver"
+import {Authentication, IAccessTokenData} from "./Authentication"
 import {GraphQLSchema} from "graphql"
+import {UserResolver} from "./resolvers/UserResolver"
+import {ChannelSettingsResolver} from "./resolvers/ChannelSettingsResolver"
+import {ExpressContext} from "apollo-server-express/dist/ApolloServer"
 
 export interface IApiResponse {
   status: number,
   message?: string,
   data?: any
+}
+
+export interface IContext extends ExpressContext {
+  oAuthData?: IAccessTokenData
 }
 
 export class Gql {
@@ -31,7 +36,7 @@ export class Gql {
 
   async init () {
     this._schema = await buildSchema({
-      resolvers: [ChannelResolver],
+      resolvers: [UserResolver, ChannelSettingsResolver],
       emitSchemaFile: true,
       validate: false, //TODO: set to true once I'm doing validations
       authChecker: Authentication.authChecker
@@ -43,7 +48,10 @@ export class Gql {
 
     this._apolloServer = new ApolloServer({
       schema: this._schema,
-      context: ({req, res, connection}) => ({req, res, connection}),
+      context: async (context: IContext) => ({
+        oAuthData: await Authentication.check(context.req, context.res),
+        ...context
+      }),
       debug: true //TODO: read from config
     })
 
