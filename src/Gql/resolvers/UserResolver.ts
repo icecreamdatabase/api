@@ -29,7 +29,7 @@ export class UserResolver implements ResolverInterface<User>{
   @Authorized([UserLevels.BROADCASTER])
   registerTts (
     @Arg("newUserData") newUserData: NewUserInput,
-    @Ctx("user") executionUser: User
+    @Ctx("user") executionUser: User //TODO
   ): Promise<User> {
     return this.userService.addNew({data: newUserData, executionUser})
   }
