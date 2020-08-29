@@ -1,19 +1,19 @@
 "use strict"
 
-import {Field, ID, InputType} from "type-graphql"
+import {Field, ID, InputType, Int} from "type-graphql"
 
 @InputType()
 export class NewChannelSettingsInput {
   @Field(type => ID)
   roomId!: string
 
-  @Field({nullable: true})
+  @Field(type => Int, {nullable: true})
   maxMessageLength?: number
 
-  @Field({nullable: true})
+  @Field(type => Int, {nullable: true})
   minCooldown?: number
 
-  @Field({nullable: true})
+  @Field(type => Int, {nullable: true})
   timeoutCheckTime?: number
 
   @Field({nullable: true})
@@ -22,7 +22,7 @@ export class NewChannelSettingsInput {
   @Field({nullable: true})
   isQueueMessages?: boolean
 
-  @Field({nullable: true})
+  @Field(type => Int, {nullable: true})
   volume?: number
 
   @Field({nullable: true})

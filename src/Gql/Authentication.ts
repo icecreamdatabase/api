@@ -5,8 +5,9 @@ import util from "util"
 import {Logger} from "../helper/Logger"
 import {IApiResponse, IContext} from "./Gql"
 import {Request, Response} from "express"
-import {AuthChecker, ResolverData} from "type-graphql"
+import {ResolverData} from "type-graphql"
 import {UserLevels} from "../Enums"
+import {AuthenticationError} from "apollo-server-express"
 
 interface IValidateReturn {
   authResponse: boolean,
@@ -33,12 +34,13 @@ export class Authentication {
   private constructor () {
   }
 
-  public static async authChecker({args, context, info, root}: ResolverData<IContext>, roles: UserLevels[]): Promise<boolean>  {
-    if (!context.oAuthData) {
-      return false
+  public static async authChecker ({args, context, info, root}: ResolverData<IContext>, roles: UserLevels[]): Promise<boolean> {
+    const minUserLevel = <UserLevels>Math.max(...roles)
+
+    if (!context.oAuthData && minUserLevel as UserLevels !== UserLevels.NOAUTH) {
+      throw new AuthenticationError("Access denied! You don't have permission for this action!")
     }
 
-    const minUserLevel = <UserLevels>Math.max(...roles)
     Logger.info(`Required auth: ${UserLevels[minUserLevel]}`)
 
     return true

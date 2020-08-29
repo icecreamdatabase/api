@@ -14,7 +14,7 @@ export class ChannelSettingsResolver {
   }
 
   @Mutation(returns => ChannelSettings)
-  @Authorized([UserLevels.BROADCASTER])
+  @Authorized([UserLevels.EDITOR])
   updateChannelSettings (
     @Arg("newChannelSettingsData") newChannelSettingsData: NewChannelSettingsInput,
     @Ctx("user") executionUser: User //TODO
