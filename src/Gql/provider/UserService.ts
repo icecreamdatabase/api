@@ -1,11 +1,13 @@
 "use strict"
 
 import {User} from "../types/User"
-import {NewUserInput} from "../types/NewUserInput"
+import {NewUserInput} from "../types/input/NewUserInput"
 import {SqlChannels} from "../../sql/channel/SqlChannels"
 import {Authentication} from "../Authentication"
 import {UserLevels} from "../../Enums"
 import {TwitchApiFunctionality} from "../../ExternalApis/twitch/TwitchApiFunctionality"
+import {RegisterTtsPayload} from "../types/payload/RegisterTtsPayload"
+import {RegisterTtsErrorCode} from "../types/ErrorEnums"
 
 export class UserService {
   public static async findById (requesterId: string, roomId: string): Promise<User | undefined> {
@@ -16,27 +18,32 @@ export class UserService {
     return undefined
   }
 
-  public static async addNew (requesterId: string, data: NewUserInput): Promise<User | undefined> {
+  public static async addNew (requesterId: string, data: NewUserInput): Promise<RegisterTtsPayload> {
     await Authentication.userLevelChecker(data.id, requesterId, UserLevels.BROADCASTER)
+    const payload = new RegisterTtsPayload()
 
     const signupInfo = await TwitchApiFunctionality.getSignupInfo(data.id)
     if (!signupInfo) {
-      return //TODO: Error channel doesn't exist
+      payload.error = RegisterTtsErrorCode.CHANNEL_DOES_NOT_EXIST
+      return payload
     }
     if (signupInfo.type === "") {
-      return //TODO: Error not affiliate / partner
+      payload.error = RegisterTtsErrorCode.CHANNEL_NOT_AFFILIATE_OR_PARTNER
+      return payload
     }
 
     try {
       await SqlChannels.addChannel(signupInfo.id, signupInfo.login, signupInfo.type === "partner")
       const newChannelData = await SqlChannels.get(signupInfo.id)
-      if (!newChannelData) {
-        return //TODO: some internal error?
+      if (newChannelData) {
+        payload.user = new User(newChannelData)
+      } else {
+        payload.error = RegisterTtsErrorCode.UNKOWN
       }
-      return new User(newChannelData)
     } catch (e: unknown) {
-      return
+      payload.error = RegisterTtsErrorCode.UNKOWN
     }
+    return payload
   }
 
   public static async removeById (requesterId: string, roomId: string) {

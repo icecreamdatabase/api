@@ -4,9 +4,10 @@ import "reflect-metadata"
 import {Arg, Authorized, Ctx, FieldResolver, ID, Mutation, Query, Resolver, ResolverInterface, Root} from "type-graphql"
 import {UserService} from "../provider/UserService"
 import {User} from "../types/User"
-import {NewUserInput} from "../types/NewUserInput"
+import {NewUserInput} from "../types/input/NewUserInput"
 import {ChannelSettings} from "../types/ChannelSettings"
 import {ChannelSettingsService} from "../provider/ChannelSettingsService"
+import {RegisterTtsPayload} from "../types/payload/RegisterTtsPayload"
 
 @Resolver(of => User)
 export class UserResolver implements ResolverInterface<User> {
@@ -28,17 +29,13 @@ export class UserResolver implements ResolverInterface<User> {
     return user
   }
 
-  @Mutation(returns => User)
+  @Mutation(returns => RegisterTtsPayload)
   @Authorized()
   async registerTts (
     @Arg("newUserData") newUserData: NewUserInput,
     @Ctx("requesterId") requesterId: string
-  ): Promise<User> {
-    const user = await UserService.addNew(requesterId, newUserData)
-    if (user === undefined) {
-      throw new Error("Error during register")
-    }
-    return user
+  ): Promise<RegisterTtsPayload> {
+    return await UserService.addNew(requesterId, newUserData)
   }
 
   @Mutation(returns => Boolean)

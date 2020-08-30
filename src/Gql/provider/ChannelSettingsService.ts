@@ -2,7 +2,7 @@
 
 import {User} from "../types/User"
 import {ChannelSettings} from "../types/ChannelSettings"
-import {NewChannelSettingsInput} from "../types/NewChannelSettingsInput"
+import {NewChannelSettingsInput} from "../types/input/NewChannelSettingsInput"
 import {SqlChannels, SqlChannelUpdateParameter} from "../../sql/channel/SqlChannels"
 import {Logger} from "../../helper/Logger"
 

@@ -4,7 +4,7 @@ import {Arg, Authorized, Ctx, Mutation, Resolver} from "type-graphql"
 import {UserLevels} from "../../Enums"
 import {ChannelSettings} from "../types/ChannelSettings"
 import {ChannelSettingsService} from "../provider/ChannelSettingsService"
-import {NewChannelSettingsInput} from "../types/NewChannelSettingsInput"
+import {NewChannelSettingsInput} from "../types/input/NewChannelSettingsInput"
 
 @Resolver(of => ChannelSettings)
 export class ChannelSettingsResolver {
