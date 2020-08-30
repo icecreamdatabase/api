@@ -38,10 +38,10 @@ export class UserService {
       if (newChannelData) {
         payload.user = new User(newChannelData)
       } else {
-        payload.error = RegisterTtsErrorCode.UNKOWN
+        payload.error = RegisterTtsErrorCode.UNKNOWN
       }
     } catch (e: unknown) {
-      payload.error = RegisterTtsErrorCode.UNKOWN
+      payload.error = RegisterTtsErrorCode.UNKNOWN
     }
     return payload
   }
