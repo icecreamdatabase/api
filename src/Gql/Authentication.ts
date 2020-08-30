@@ -5,10 +5,11 @@ import util from "util"
 import {Logger} from "../helper/Logger"
 import {IApiResponse, IContext} from "./Gql"
 import {Request, Response} from "express"
-import {ResolverData, UnauthorizedError} from "type-graphql"
+import {ResolverData} from "type-graphql"
 import {UserLevels} from "../Enums"
 import {AuthenticationError} from "apollo-server-express"
-import {User} from "./types/User"
+import {SqlEditors} from "../sql/channel/SqlEditors"
+import {TwitchApiFunctionality} from "../ExternalApis/twitch/TwitchApiFunctionality"
 
 interface IValidateReturn {
   authResponse: boolean,
@@ -32,6 +33,11 @@ export class Authentication {
   // noinspection JSUnusedLocalSymbols
   private static readonly _clearAuthMapIntervalId: NodeJS.Timeout = setInterval(Authentication.clearMap, Authentication._mapClearInterval)
 
+  //TODO
+  private static readonly _botBots = [478777352]
+  private static readonly _botOwners = [0]//38949074]
+  private static readonly _botAdmins = [99308836]
+
   private constructor () {
   }
 
@@ -49,14 +55,29 @@ export class Authentication {
   }
 
   public static async isUserAuthorized (roomId: string, userId: string, requiredUserLevel: UserLevels): Promise<boolean> {
-    //TODO
-    return roomId === userId
+    let userLevel: UserLevels = UserLevels.USER
+
+    if (this._botBots.includes(parseInt(userId))) {
+      userLevel = UserLevels.BOT
+    } else if (this._botOwners.includes(parseInt(userId, 10))) {
+      userLevel = UserLevels.BOTOWNER
+    } else if (this._botAdmins.includes(parseInt(userId))) {
+      userLevel = UserLevels.BOTADMIN
+    } else if (roomId === userId) {
+      userLevel = UserLevels.BROADCASTER
+    } else if (await SqlEditors.isEditor(roomId, userId)) {
+      userLevel = UserLevels.EDITOR
+    } else if (await TwitchApiFunctionality.isModInChannel(userId, roomId)) {
+      userLevel = UserLevels.MODERATOR
+    }
+
+    return userLevel >= requiredUserLevel
   }
 
   /**
    * @throws AuthenticationError
    */
-  public static async userLeveLChecker (roomId: string, userId: string, requiredUserLevel: UserLevels): Promise<void> {
+  public static async userLevelChecker (roomId: string, userId: string, requiredUserLevel: UserLevels): Promise<void> {
     if (!await this.isUserAuthorized(roomId, userId, requiredUserLevel)) {
       throw new AuthenticationError("Access denied! You don't have permission for this action!")
     }

@@ -1,7 +1,7 @@
 "use strict"
 
 import {Gql} from "./Gql/Gql"
-import {Aws} from "./aws/Aws"
+import {Aws} from "./ExternalApis/aws/Aws"
 import EventEmitter from "eventemitter3"
 
 export enum Events {

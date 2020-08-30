@@ -34,7 +34,11 @@ export class UserResolver implements ResolverInterface<User> {
     @Arg("newUserData") newUserData: NewUserInput,
     @Ctx("requesterId") requesterId: string
   ): Promise<User> {
-    return await UserService.addNew(requesterId, newUserData)
+    const user = await UserService.addNew(requesterId, newUserData)
+    if (user === undefined) {
+      throw new Error("Error during register")
+    }
+    return user
   }
 
   @Mutation(returns => Boolean)
