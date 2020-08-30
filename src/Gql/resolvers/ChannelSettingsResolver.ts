@@ -1,7 +1,6 @@
 "use strict"
 
 import {Arg, Authorized, Ctx, Mutation, Resolver} from "type-graphql"
-import {User} from "../types/User"
 import {UserLevels} from "../../Enums"
 import {ChannelSettings} from "../types/ChannelSettings"
 import {ChannelSettingsService} from "../provider/ChannelSettingsService"
@@ -14,11 +13,11 @@ export class ChannelSettingsResolver {
   }
 
   @Mutation(returns => ChannelSettings)
-  @Authorized([UserLevels.EDITOR])
+  @Authorized()
   updateChannelSettings (
     @Arg("newChannelSettingsData") newChannelSettingsData: NewChannelSettingsInput,
-    @Ctx("user") executionUser: User //TODO
+    @Ctx("requesterId") requesterId: string
   ): Promise<ChannelSettings> {
-    return this.channelSettingService.updateChannelSettings({data: newChannelSettingsData, executionUser})
+    return this.channelSettingService.updateChannelSettings(requesterId, newChannelSettingsData)
   }
 }

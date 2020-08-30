@@ -2,29 +2,36 @@
 
 import {User} from "../types/User"
 import {NewUserInput} from "../types/NewUserInput"
-import {ChannelSettings} from "../types/ChannelSettings"
-import {Logger} from "../../helper/Logger"
-import util from "util"
+import {SqlChannels} from "../../sql/channel/SqlChannels"
 
 export class UserService {
-  async findById (id: string) {
+  public static async findById (requesterId: string, roomId: string): Promise<User | undefined> {
+    const channel = await SqlChannels.get(roomId)
+    if (channel) {
+      const ch = new User()
+      ch.id = channel.roomId.toString()
+      ch.name = channel.channelName
+      return ch
+    }
+    return undefined
+  }
+
+  public static async addNew (requesterId: string, data: NewUserInput): Promise<User> {
+    //TODO
+
     const ch = new User()
-    ch.id = id
-    ch.name = `${id}xD`
+    ch.id = data.id
+    ch.name = `${data.id}xd`
     return ch
   }
 
-  async addNew (param: { data: NewUserInput; executionUser: User }) {
-    Logger.info(util.inspect(param.executionUser))
-    const ch = new User()
-    ch.id = param.data.id
-    ch.name = `${param.data.id}xd`
-    return ch
-  }
+  public static async removeById (requesterId: string, roomId: string) {
 
-  async removeById (id: string) {
-    if (Math.random() > 0.5) {
-      throw new Error("")
+    try {
+      await SqlChannels.disableChannel(roomId)
+      return true
+    } catch (e: unknown) {
+      return false
     }
   }
 }

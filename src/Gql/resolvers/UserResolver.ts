@@ -5,56 +5,59 @@ import {Arg, Authorized, Ctx, FieldResolver, ID, Mutation, Query, Resolver, Reso
 import {UserService} from "../provider/UserService"
 import {User} from "../types/User"
 import {NewUserInput} from "../types/NewUserInput"
-import {UserLevels} from "../../Enums"
 import {ChannelSettings} from "../types/ChannelSettings"
 import {ChannelSettingsService} from "../provider/ChannelSettingsService"
 
 @Resolver(of => User)
-export class UserResolver implements ResolverInterface<User>{
+export class UserResolver implements ResolverInterface<User> {
   constructor (private readonly userService: UserService, private readonly channelSettingSerivce: ChannelSettingsService) {
     this.userService ??= new UserService()
     this.channelSettingSerivce ??= new ChannelSettingsService()
   }
 
   @Query(returns => User)
-  async user (@Arg("id", type => ID!) id: string) {
-    const channel = await this.userService.findById(id)
-    if (channel === undefined) {
+  @Authorized()
+  async user (
+    @Arg("id", type => ID!) id: string,
+    @Ctx("requesterId") requesterId: string
+  ): Promise<User> {
+    const user = await UserService.findById(requesterId, id)
+    if (user === undefined) {
       throw new Error("user not found")
     }
-    return channel
+    return user
   }
 
   @Mutation(returns => User)
-  @Authorized([UserLevels.BROADCASTER])
-  registerTts (
+  @Authorized()
+  async registerTts (
     @Arg("newUserData") newUserData: NewUserInput,
-    @Ctx("user") executionUser: User //TODO
+    @Ctx("requesterId") requesterId: string
   ): Promise<User> {
-    return this.userService.addNew({data: newUserData, executionUser})
+    return await UserService.addNew(requesterId, newUserData)
   }
 
   @Mutation(returns => Boolean)
-  @Authorized([UserLevels.BROADCASTER])
-  async unregisterTts (@Arg("id", type => ID) id: string) {
-    try {
-      await this.userService.removeById(id)
-      return true
-    } catch {
-      return false
-    }
+  @Authorized()
+  async unregisterTts (
+    @Arg("id", type => ID) id: string,
+    @Ctx("requesterId") requesterId: string
+  ) {
+    return await UserService.removeById(requesterId, id)
   }
 
   @FieldResolver(returns => ChannelSettings)
-  @Authorized([UserLevels.MODERATOR])
-  async channelSettings (@Root() user: User) {
-    const channelSettings = this.channelSettingSerivce.findByUser(user)
+  @Authorized()
+  async channelSettings (
+    @Root() user: User,
+    @Ctx("requesterId") requesterId: string
+  ) {
+    const channelSettings = ChannelSettingsService.findByRoomId(requesterId, user.id)
     if (channelSettings === undefined) {
       throw new Error("channelSettings not found")
     }
     return channelSettings
   }
-
 }
 
 

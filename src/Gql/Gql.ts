@@ -20,6 +20,7 @@ export interface IApiResponse {
 
 export interface IContext extends ExpressContext {
   oAuthData?: IAccessTokenData
+  requesterId?: string
 }
 
 export class Gql {
@@ -48,10 +49,14 @@ export class Gql {
 
     this._apolloServer = new ApolloServer({
       schema: this._schema,
-      context: async (context: IContext) => ({
-        oAuthData: await Authentication.check(context.req, context.res),
-        ...context
-      }),
+      context: async (context: IContext) => {
+        const oAuth = await Authentication.check(context.req, context.res)
+        return <IContext>{
+          oAuthData: oAuth,
+          requesterId: oAuth?.user_id,
+          ...context
+        }
+      },
       debug: true //TODO: read from config
     })
 

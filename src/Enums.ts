@@ -2,7 +2,6 @@
 
 // noinspection JSUnusedGlobalSymbols
 export enum UserLevels {
-  NOAUTH = 0,
   USER = 1,
   MODERATOR = 2,
   EDITOR = 3,
