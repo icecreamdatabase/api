@@ -5,7 +5,6 @@ import util from "util"
 import {Logger} from "../helper/Logger"
 import {IApiResponse, IContext} from "./Gql"
 import {Request, Response} from "express"
-import {ResolverData} from "type-graphql"
 import {UserLevels} from "../Enums"
 import {AuthenticationError} from "apollo-server-express"
 import {SqlEditors} from "../sql/channel/SqlEditors"
@@ -44,15 +43,15 @@ export class Authentication {
   /**
    * I can't really check UserLevels because I don't have access to which channel the request is targeting. Use Authentication.UserLevelChecker instead.
    */
-  public static async authChecker ({args, context, info, root}: ResolverData<IContext>, roles: UserLevels[]): Promise<boolean> {
+  //public static async authChecker  ({args, context, info, root}: ResolverData<IContext>, roles: UserLevels[]): Promise<boolean> {
 
-    if (!context.oAuthData || !context.requesterId) {
-      throw new AuthenticationError("Access denied! You don't have permission for this action!")
-    }
+  //  if (!context.oAuthData || !context.requesterId) {
+  //    throw new AuthenticationError("Access denied! You don't have permission for this action!")
+  //  }
 
 
-    return true
-  }
+  //  return true
+  //}
 
   public static async isUserAuthorized (roomId: string, userId: string, requiredUserLevel: UserLevels): Promise<boolean> {
     let userLevel: UserLevels = UserLevels.USER

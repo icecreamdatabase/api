@@ -33,6 +33,6 @@ export class Logger {
   }
 
   public static http (req: Request, res: Response):void {
-    console.log(`${req.connection.remoteAddress} - - [${new Date().toISOString()}] ${req.method} ${req.url} HTTP/${req.httpVersion} ${res.statusCode} ${res.socket.bytesWritten}`)
+    console.log(`${req.connection.remoteAddress} - - [${new Date().toISOString()}] ${req.method} ${req.url} HTTP/${req.httpVersion} ${res.statusCode} ${res.socket?.bytesWritten}`)
   }
 }
