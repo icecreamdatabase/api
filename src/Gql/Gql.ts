@@ -6,7 +6,12 @@ import {Api} from "../Api"
 import {ApolloServer} from "apollo-server-express"
 import {Authentication, IAccessTokenData} from "./Authentication"
 import {ExpressContext} from "apollo-server-express/dist/ApolloServer"
-import schema from "./schema"
+import {Schema} from "./schema"
+import {PubSub} from 'graphql-subscriptions'
+import {SubscriptionServer} from 'subscriptions-transport-ws'
+import {createServer} from "http"
+import {execute, subscribe} from "graphql"
+import bodyParser from 'body-parser'
 
 export interface IApiResponse {
   status: number,
@@ -24,15 +29,19 @@ export class Gql {
   private readonly _api: Api
   private readonly _app: Express
   private _apolloServer?: ApolloServer
+  private readonly _pubsub: PubSub
+  private _schema: Schema
 
   constructor (api: Api) {
     this._api = api
     this._app = express()
+    this._pubsub = new PubSub()
+    this._schema = new Schema(this._pubsub)
   }
 
   async init () {
     this._apolloServer = new ApolloServer({
-      schema,
+      schema: this._schema.schema,
       context: async (context: IContext) => {
         const oAuth = await Authentication.check(context.req, context.res)
         return <IContext>{
@@ -41,15 +50,32 @@ export class Gql {
           ...context
         }
       },
-      debug: true //TODO: read from config
+      subscriptions: {
+        path: "/"
+      },
+      //TODO: read the next 3 lines from config / env var
+      playground: true,
+      tracing: true,
+      debug: true
     })
+    this._app.use('/', bodyParser.json())
 
-    //TODO: Better logger. This one logs before having done anything FeelsDankMan
     this._app.use(Gql.onLog)
 
     this._apolloServer.applyMiddleware({app: this._app, path: "/"})
 
-    this._app.listen({port: Gql.portREST})
+    const server = createServer(this._app)
+
+    server.listen(Gql.portREST, () => {
+      new SubscriptionServer({
+        execute,
+        subscribe,
+        schema: this._schema.schema
+      }, {
+        server,
+        path: '/'
+      })
+    })
     Logger.info("REST listening...")
   }
 

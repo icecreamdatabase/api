@@ -20,7 +20,9 @@
     "eventemitter3": "^4.0.7",
     "express": "^4.17.1",
     "graphql": "^15.3.0",
+    "graphql-subscriptions": "^1.1.0",
     "mysql2": "^2.2.5",
+    "subscriptions-transport-ws": "^0.9.18",
     "util": "^0.12.3",
     "ws": "^7.3.1"
   },

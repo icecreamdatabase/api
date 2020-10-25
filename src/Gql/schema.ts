@@ -1,10 +1,20 @@
-import typeDefs from './schema/schema';
-import { makeExecutableSchema } from 'graphql-tools';
-import resolvers from './resolverMap';
-import { GraphQLSchema } from 'graphql';
+import typeDefs from './schema/schema'
+import {makeExecutableSchema} from 'graphql-tools'
+import {PubSub} from 'graphql-subscriptions'
+import {ResolverMap} from './resolverMap'
+import {GraphQLSchema} from 'graphql'
 
-const schema: GraphQLSchema = makeExecutableSchema({
-  typeDefs,
-  resolvers,
-});
-export default schema;
+export class Schema {
+  private resolverMap: ResolverMap
+  public schema: GraphQLSchema
+
+  constructor (private pubsub: PubSub) {
+    this.resolverMap = new ResolverMap(this.pubsub)
+    this.schema = makeExecutableSchema({
+      typeDefs,
+      resolvers: this.resolverMap.resolvers
+    })
+  }
+
+}
+
