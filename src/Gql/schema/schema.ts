@@ -1,24 +1,24 @@
 // language=GraphQL
 const schema = `
-  
-type Query {
-  helloWorld: String!
-  test: String!
-}
 
-type Comment {
-  id: String
-  content: String
-}
+  type Query {
+    helloWorld: String!
+    test: String!
+  }
 
-type Subscription {
-  commentAdded(repoFullName: String!): Comment
-}
+  type Comment {
+    id: String
+    content: String
+  }
 
-schema {
-  query: Query
-  subscription: Subscription
-}
+  type Subscription {
+    commentAdded(repoFullName: String!): Comment
+  }
+
+  schema {
+    query: Query
+    subscription: Subscription
+  }
 `
 
 export default schema
