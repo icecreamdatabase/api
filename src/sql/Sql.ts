@@ -7,7 +7,7 @@ import {FieldPacket, RowDataPacket} from "mysql2"
 export class Sql {
   private static _pool: Mysql.Pool = Mysql.createPool({typeCast: Sql.castField, ...config.mysqloptions})
 
-  public static async execute (sql: string, values: any | any[] | { [param: string]: any }): Promise<[RowDataPacket[], FieldPacket[]]> {
+  public static async execute (sql: string, values?: any | any[] | { [param: string]: any }): Promise<[RowDataPacket[], FieldPacket[]]> {
     const [rows, fields]: [RowDataPacket[], FieldPacket[]] = await Sql._pool.execute<RowDataPacket[]>(sql, values)
     this.bufferToBoolean(rows)
     return [rows, fields]
